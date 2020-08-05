@@ -23,7 +23,6 @@ from toolbar_utils import button_factory, label_factory, separator_factory, \
                           radio_factory
 from utils import json_load, json_dump
 
-import dbus
 import logging
 
 try:
@@ -40,20 +39,12 @@ import logging
 _logger = logging.getLogger('reflection-activity')
 
 
-SERVICE = 'org.sugarlabs.ReflectionActivity'
-IFACE = SERVICE
-PATH = '/org/augarlabs/ReflectionActivity'
-
-
 class ReflectionActivity(activity.Activity):
     ''' Reflection puzzle game '''
 
     def __init__(self, handle):
         ''' Initialize the toolbars and the game board '''
-        try:
-            super(ReflectionActivity, self).__init__(handle)
-        except dbus.exceptions.DBusException as e:
-            _logger.error(str(e))
+        super().__init__(handle)
 
         self.nick = profile.get_nick_name()
         if profile.get_color() is not None:
@@ -178,7 +169,8 @@ class ReflectionActivity(activity.Activity):
         dots = self.metadata['dotlist'].split()
         for dot in dots:
             dot_list.append(int(dot))
-        self._game.restore_game(dot_list, orientation)
+        colors = self.colors
+        self._game.restore_game(dot_list, orientation, colors)
 
     # Collaboration-related methods
 
@@ -188,8 +180,6 @@ class ReflectionActivity(activity.Activity):
         self._collab = CollabWrapper(self)
         self._collab.connect('message', self.__message_cb)
 
-        owner = self._collab._leader
-        self.owner = owner
         self._game.set_sharing(True)
         self._collab.setup()
 
@@ -212,8 +202,8 @@ class ReflectionActivity(activity.Activity):
 
     def _receive_new_game(self, payload):
         ''' Sharer can start a new game. '''
-        [dot_list, orientation] = json_load(payload)
-        self._game.restore_game(dot_list, orientation)
+        [dot_list, orientation, colors] = json_load(payload)
+        self._game.restore_game(dot_list, orientation, colors)
 
     def send_dot_click(self, dot, color):
         ''' Send a dot click to all the players '''

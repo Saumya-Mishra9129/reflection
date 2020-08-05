@@ -142,7 +142,7 @@ class Game():
         '''
 
     def _initiating(self):
-        return self._activity.initiating
+        return self._activity._collab.props.leader
 
     def new_game(self, orientation='horizontal'):
         ''' Start a new game. '''
@@ -164,13 +164,14 @@ class Game():
             _logger.debug('sending a new game')
             self._parent.send_new_game()
 
-    def restore_game(self, dot_list, orientation):
+    def restore_game(self, dot_list, orientation, colors):
         ''' Restore a game from the Journal or share '''
         for i, dot in enumerate(dot_list):
             self._dots[i].type = dot
             self._dots[i].set_shape(self._new_dot(
                     self._colors[self._dots[i].type]))
         self._orientation = orientation
+        self._colors = colors
         self._set_orientation()
 
     def save_game(self):
@@ -179,7 +180,7 @@ class Game():
         dot_list = []
         for dot in self._dots:
             dot_list.append(dot.type)
-        return [dot_list, self._orientation]
+        return [dot_list, self._orientation, self._colors]
 
     def _set_label(self, string):
         ''' Set the label in the toolbar or the window frame. '''
